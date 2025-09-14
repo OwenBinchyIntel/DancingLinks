@@ -32,9 +32,8 @@ public:
         int count;
     };
 
-    ConstraintMatrix(int width) 
-    : m_Width{width}
-    {
+    ConstraintMatrix(int width)
+        : m_Width{width} {
         ConnectColHeaders();
         PopulateGraph();
     }
@@ -45,10 +44,11 @@ public:
         }
 
         int lowestPossibilities = k_MaxPosibilities + 1;
-        Header* lowestCol = nullptr;
+        Header *lowestCol = nullptr;
 
         // Find constraint with fewest possibilities
-        for (Header* colH = reinterpret_cast<Header*>(m_RootNode.right); colH != &m_RootNode; colH = reinterpret_cast<Header*>(colH->right)) {
+        for (Header *colH = reinterpret_cast<Header *>(m_RootNode.right); colH != &m_RootNode;
+             colH = reinterpret_cast<Header *>(colH->right)) {
             if (colH->count < lowestPossibilities) {
                 lowestPossibilities = colH->count;
                 lowestCol = colH;
@@ -63,7 +63,7 @@ public:
         // Consider constraint satisfied and iterate through its possibilities.
         Cover(lowestCol);
         int solutions = 0;
-        for (Node* r = lowestCol->down; r != lowestCol; r = r->down) {
+        for (Node *r = lowestCol->down; r != lowestCol; r = r->down) {
             Select(r);
             solutions += Solutions();
             UnSelect(r);
@@ -81,30 +81,29 @@ public:
         int rci = (row * m_Width) + col;
         int rni = (m_Width * m_Width) + (row * m_Width) + num;
 
-        for (Node* h = m_RootNode.right; h != &m_RootNode; h = h->right) {
-            Header* col = reinterpret_cast<Header*>(h);
+        for (Node *h = m_RootNode.right; h != &m_RootNode; h = h->right) {
+            Header *col = reinterpret_cast<Header *>(h);
             if (col->ix == rci) {
-                for (Node* n = h->down; n != h; n = n->down) {
+                for (Node *n = h->down; n != h; n = n->down) {
                     if (n->right->col->ix == rni) {
                         Cover(n->col);
                         Select(n);
                         return true;
                     }
                 }
-
             }
         }
         return false;
     }
 
 private:
-    void Cover(Header* c) {
+    void Cover(Header *c) {
         // Remove c from header list
         c->right->left = c->left;
         c->left->right = c->right;
         // Remove all rows from c from other columns that they are in
-        for (Node* i = c->down; i != c; i = i->down) {
-            for (Node* j = i->right; j != i; j = j->right) {
+        for (Node *i = c->down; i != c; i = i->down) {
+            for (Node *j = i->right; j != i; j = j->right) {
                 j->up->down = j->down;
                 j->down->up = j->up;
                 --j->col->count;
@@ -112,10 +111,10 @@ private:
         }
     }
 
-    void UnCover(Header* c) {
+    void UnCover(Header *c) {
         // Reverse operation of cover
-        for (Node* i = c->up; i != c; i = i->up) {
-            for (Node* j = i->left; j != i; j = j->left) {
+        for (Node *i = c->up; i != c; i = i->up) {
+            for (Node *j = i->left; j != i; j = j->left) {
                 ++j->col->count;
                 j->down->up = j;
                 j->up->down = j;
@@ -125,14 +124,14 @@ private:
         c->right->left = c;
     }
 
-    void Select(Node* n) {
-        for (Node* j = n->right; j != n; j = j->right) {
+    void Select(Node *n) {
+        for (Node *j = n->right; j != n; j = j->right) {
             Cover(j->col);
         }
     }
 
-    void UnSelect(Node* n) {
-        for (Node* j = n->left; j != n; j = j->left) {
+    void UnSelect(Node *n) {
+        for (Node *j = n->left; j != n; j = j->left) {
             UnCover(j->col);
         }
     }
@@ -161,12 +160,10 @@ private:
         }
     }
 
-    int Possibility(int row, int col, int num) const {
-        return (row * m_Width * m_Width) + (col * m_Width) + num;
-    }
+    int Possibility(int row, int col, int num) const { return (row * m_Width * m_Width) + (col * m_Width) + num; }
 
     void PopulateGraph() {
-        std::array<Node*, k_MaxPosibilities> rightmostNodes{nullptr};
+        std::array<Node *, k_MaxPosibilities> rightmostNodes{nullptr};
         int constraint = 0;
         // RC
         for (int r = 0; r < m_Width; ++r) {
@@ -200,7 +197,7 @@ private:
         }
     }
 
-    void CreateNewNode(int possibility, int constraint, std::array<Node*, k_MaxPosibilities> &rightmostNodes) {
+    void CreateNewNode(int possibility, int constraint, std::array<Node *, k_MaxPosibilities> &rightmostNodes) {
         Node *node = &m_Nodes[m_NodeCount++];
 
         // Insert node into column (at lowest position)
@@ -212,7 +209,7 @@ private:
         ++node->col->count;
 
         // Connect node to neighbours left & right
-        Node* rightmost = rightmostNodes[possibility];
+        Node *rightmost = rightmostNodes[possibility];
         if (rightmost) {
             Node *leftmost = rightmost->right;
             node->left = rightmost;
@@ -227,10 +224,9 @@ private:
         rightmostNodes[possibility] = node;
     }
 
-
 private:
     const int m_Width;
-    const int m_NumConstraints{3*m_Width*m_Width};
+    const int m_NumConstraints{3 * m_Width * m_Width};
 
     Node m_RootNode;
     std::array<Header, k_MaxConstraints> m_Headers;
@@ -241,7 +237,7 @@ private:
 #if defined(_WIN32)
 int main() {
     int n = 9;
-    
+
     for (int iter = 0; iter < 100; ++iter) {
         // std::vector<std::vector<int>> init_grid = {
         //     {1, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 3, 0, 0, 0, 0, 0, 0},
